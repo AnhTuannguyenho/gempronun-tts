@@ -16,9 +16,11 @@ WORKDIR /app
 
 # torch CUDA 12.4 (cài trước để kokoro không kéo bản khác)
 RUN pip install torch --index-url https://download.pytorch.org/whl/cu121
-# Kokoro + G2P tiếng Anh (misaki[en] + spacy en) + flask — đúng môi trường vast chạy tốt
+# Kokoro + G2P tiếng Anh (misaki[en] + spacy en) + flask
 RUN pip install 'numpy<2' soundfile flask 'kokoro>=0.9.4' 'misaki[en]' \
     && python -m spacy download en_core_web_sm
+# QUAN TRỌNG: kokoro có thể đã thay torch bằng bản khác (CPU/cuda khác) -> cài lại cu121 ở CUỐI
+RUN pip install torch --index-url https://download.pytorch.org/whl/cu121 --force-reinstall --no-deps
 
 COPY app.py /app/
 
