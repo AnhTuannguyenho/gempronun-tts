@@ -1,5 +1,5 @@
 # Kokoro TTS — RunPod Serverless LOAD BALANCER image (GPU). Flask HTTP server.
-FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
+FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # torch CUDA 12.4 (cài trước để kokoro không kéo bản khác)
-RUN pip install torch --index-url https://download.pytorch.org/whl/cu124
+RUN pip install torch --index-url https://download.pytorch.org/whl/cu121
 # Kokoro + G2P tiếng Anh (misaki[en] + spacy en) + flask — đúng môi trường vast chạy tốt
 RUN pip install 'numpy<2' soundfile flask 'kokoro>=0.9.4' 'misaki[en]' \
     && python -m spacy download en_core_web_sm
