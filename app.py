@@ -24,6 +24,7 @@ SR = 24000
 app = Flask(__name__)
 _lock = threading.Lock()
 _ready = False
+_gpu_ok = True   # máy xấu -> False -> /ping 500 -> RunPod loại worker
 _pipes = {}
 
 
@@ -50,12 +51,14 @@ def _synth(text, voice, speed):
 
 
 def _load():
-    global _ready
+    global _ready, _gpu_ok
     try:
-        _synth("Hello world.", DEFAULT_VOICE, 1.0)   # nạp + warm Kokoro lên GPU
-        print("[tts] kokoro ready", flush=True)
+        _synth("Hello world.", DEFAULT_VOICE, 1.0)   # nạp + SELF-TEST Kokoro trên GPU
+        _gpu_ok = True
+        print("[tts] kokoro ready (GPU OK)", flush=True)
     except Exception as e:
-        print("[tts] load error:", e, flush=True)
+        _gpu_ok = False   # máy xấu (CUDA error) -> /ping 500 -> RunPod loại worker
+        print("[tts] GPU self-test FAILED (host xấu):", e, flush=True)
     _ready = True
 
 
@@ -68,7 +71,10 @@ def _cors(r):
 
 @app.get("/ping")
 def ping():
-    return ("", 200) if _ready else ("", 204)
+    # 204 đang nạp; 200 sẵn sàng + GPU tốt; 500 GPU xấu -> RunPod loại worker này
+    if not _ready:
+        return ("", 204)
+    return ("", 200) if _gpu_ok else ("", 500)
 
 
 @app.get("/health")
